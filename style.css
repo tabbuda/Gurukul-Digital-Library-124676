@@ -967,6 +967,7 @@ select:focus {
 
 .act-btn.call {
     background: #3b82f6;
+    text-decoration: none;
 }
 
 .act-btn.whatsapp {
@@ -1082,4 +1083,5 @@ body.role-staff .admin-only {
 
 #toastBox.error i {
     color: var(--danger);
+
 }
