@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>Gurukul Admin Console</title>
+
+    <!-- PWA Settings -->
+    <meta name="theme-color" content="#4f46e5" />
+
+    <!-- FONTS & ICONS -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <link rel="manifest" href="manifest.json" />
+
+    <!-- STYLE LINK -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body data-theme="light">
+    <!-- 1. TOAST NOTIFICATION -->
+    <div id="toastBox">
+      <div id="toastIcon"><i class="fas fa-check-circle"></i></div>
+      <div id="toastMsg">Action Successful</div>
+    </div>
+
+    <!-- 2. LOGIN VIEW (DEFAULT SCREEN) -->
+    <section id="loginView" class="login-container">
+      <div class="login-card">
+        <div class="logo-circle large"><i class="fas fa-book-reader"></i></div>
+        <h2>Gurukul Admin</h2>
+        <p class="text-muted">Secure Access Portal</p>
+
+        <div class="input-group" style="margin-top: 20px">
+          <input type="text" id="loginId" placeholder="User ID (e.g. admin)" />
+        </div>
+        <div class="input-group">
+          <input type="password" id="loginPass" placeholder="Password" />
+        </div>
+
+        <button id="btnLogin" class="btn-submit" onclick="handleLogin()">
+          Login Securely <i class="fas fa-arrow-right"></i>
+        </button>
+      </div>
+    </section>
+
+    <!-- 3. MAIN APPLICATION (HIDDEN UNTIL LOGIN) -->
+    <div id="mainAppLayout" style="display: none">
+      <!-- SIDEBAR NAVIGATION -->
+      <div class="app-overlay" onclick="closeSidebar()"></div>
+
+      <aside class="sidebar">
+        <div class="sidebar-header">
+          <div class="logo-circle"><i class="fas fa-book-reader"></i></div>
+          <div>
+            <h3>Gurukul</h3>
+            <small>Management V2.0</small>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <button onclick="navTo('dashboard')" class="menu-item active">
+            <i class="fas fa-home"></i> Dashboard
+          </button>
+          <button onclick="navTo('dailyRegisterSection')" class="menu-item">
+            <i class="fas fa-cash-register"></i> Daily Register
+          </button>
+          <button onclick="navTo('admission')" class="menu-item">
+            <i class="fas fa-user-plus"></i> New Admission
+          </button>
+          <button onclick="navTo('seatMapSection')" class="menu-item">
+            <i class="fas fa-th"></i> Seat Map
+          </button>
+          <!-- Admin Only Menu (Logic handled in JS via CSS class) -->
+          <button
+            onclick="navTo('financesSection')"
+            class="menu-item admin-only"
+          >
+            <i class="fas fa-wallet"></i> Finances
+          </button>
+        </nav>
+
+        <div class="sidebar-footer">
+          <small
+            class="text-muted"
+            style="display: block; text-align: center; margin-bottom: 10px"
+            >Gurukul GDL 2.0</small
+          >
+        </div>
+      </aside>
+
+      <!-- MAIN CONTENT AREA -->
+      <main class="main-content">
+        <!-- TOP HEADER -->
+        <header class="top-bar">
+          <div style="display: flex; align-items: center; gap: 15px">
+            <button class="menu-btn" onclick="toggleSidebar()">
+              <i class="fas fa-bars"></i>
+            </button>
+            <h2 id="pageTitle" style="font-size: 1.1rem">Gurukul</h2>
+          </div>
+
+          <!-- RIGHT ACTIONS: SYNC & PROFILE -->
+          <div class="top-actions">
+            <!-- Sync Cloud Icon -->
+            <i
+              id="syncStatusIcon"
+              class="fas fa-cloud text-muted"
+              style="font-size: 1.2rem; margin-right: 15px"
+            ></i>
+
+            <!-- Profile Dropdown -->
+            <div class="profile-wrapper" style="position: relative">
+              <div class="profile-pic" onclick="toggleProfileMenu()">
+                <i class="fas fa-user"></i>
+              </div>
+              <div id="profileDropdown" class="dropdown-menu">
+                <div class="dd-item" onclick="toggleTheme()">
+                  <i class="fas fa-adjust"></i> Switch Theme
+                </div>
+                <div class="dd-item text-danger" onclick="handleLogout()">
+                  <i class="fas fa-sign-out-alt"></i> Logout
+                </div>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <!-- VIEW: DASHBOARD -->
+        <section id="dashboard" class="view-section active">
+          <!-- Welcome Header -->
+          <div class="welcome-header">
+            <h3 id="welcomeMsg">Good Morning, Admin</h3>
+            <p class="text-muted">Here is today's overview</p>
+          </div>
+
+          <!-- Search & Filter -->
+          <div class="search-container">
+            <div class="search-box">
+              <i class="fas fa-search"></i>
+              <input
+                type="text"
+                id="searchInput"
+                placeholder="Search Student..."
+              />
+            </div>
+            <select id="shiftFilter" onchange="renderStudentList()">
+              <option value="All">All Shifts</option>
+              <option value="Morning">Morning</option>
+              <option value="Evening">Evening</option>
+              <option value="Night">Night</option>
+              <option value="Full Day">Full Day</option>
+            </select>
+          </div>
+
+          <!-- Student List Container -->
+          <div id="studentListContainer" class="student-list"></div>
+        </section>
+
+        <!-- VIEW: DAILY REGISTER -->
+        <section id="dailyRegisterSection" class="view-section">
+          <div class="section-title">
+            <h3>Daily Transactions</h3>
+          </div>
+          <div id="dailyRegContainer" class="daily-feed"></div>
+        </section>
+
+        <!-- VIEW: ADMISSION -->
+        <section id="admission" class="view-section">
+          <div class="form-container">
+            <h3>New Admission</h3>
+            <div class="input-group">
+              <label>Full Name</label>
+              <input type="text" id="admName" placeholder="Student Name" />
+            </div>
+
+            <div class="input-row">
+              <div class="input-group">
+                <label>Father's Name</label>
+                <input type="text" id="admFather" placeholder="Mr. Name" />
+              </div>
+              <div class="input-group">
+                <label>Contact</label>
+                <input
+                  type="tel"
+                  id="admContact"
+                  placeholder="10 Digit Mobile"
+                />
+              </div>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group">
+                <label>Seat No</label>
+                <input type="number" id="admSeat" placeholder="e.g. 12" />
+              </div>
+              <div class="input-group">
+                <label>Monthly Fee</label>
+                <input type="number" id="admFee" value="500" />
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>Shift Selection</label>
+              <select id="admShift">
+                <option value="Morning">Morning (7AM - 12PM)</option>
+                <option value="Evening">Evening (1PM - 6PM)</option>
+                <option value="Night">Night (7PM - 11PM)</option>
+                <option value="Full Day">Full Day</option>
+                <option value="Morning+Evening">Morning + Evening</option>
+                <option value="Evening+Night">Evening + Night</option>
+              </select>
+            </div>
+
+            <div class="input-row">
+              <div class="input-group">
+                <label>Join Date</label>
+                <input type="date" id="admDate" />
+              </div>
+              <div class="input-group">
+                <label>Gender</label>
+                <select id="admGender">
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>Address</label>
+              <input type="text" id="admAddr" placeholder="Village / City" />
+            </div>
+
+            <button class="btn-submit" onclick="submitAdmission()">
+              Confirm Admission <i class="fas fa-check"></i>
+            </button>
+          </div>
+        </section>
+
+        <!-- VIEW: SEAT MAP -->
+        <section id="seatMapSection" class="view-section">
+          <div class="section-title">
+            <h3>Seat Status</h3>
+          </div>
+          <div class="legend">
+            <span class="dot free"></span> Empty
+            <span class="dot partial"></span> Partial
+            <span class="dot full"></span> Full
+          </div>
+          <div id="seatGridContainer" class="seat-grid-layout"></div>
+        </section>
+
+        <!-- VIEW: FINANCES (Admin Only) -->
+        <section id="financesSection" class="view-section admin-only">
+          <div class="section-title"><h3>Manage Expenses</h3></div>
+          <div class="form-container">
+            <div class="input-group">
+              <label>Date</label>
+              <input type="date" id="expDate" />
+            </div>
+            <div class="input-row">
+              <input type="text" id="expItem" placeholder="Item Name" />
+              <input type="number" id="expAmount" placeholder="Amount" />
+            </div>
+            <button class="btn-submit danger" onclick="submitExpense()">
+              Record Expense <i class="fas fa-arrow-down"></i>
+            </button>
+          </div>
+          <div id="expenseList" style="margin-top: 20px"></div>
+        </section>
+      </main>
+
+      <!-- 4. PROFILE MODAL -->
+      <div id="profileModal" class="modal-backdrop">
+        <div class="modal-card">
+          <!-- MODE 1: VIEW PROFILE -->
+          <div id="profileViewMode">
+            <div class="modal-head">
+              <h3 id="p_name">Student Name</h3>
+              <button onclick="closeProfile()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+
+            <div class="modal-body" style="text-align: center">
+              <!-- BIG AVATAR -->
+              <img
+                id="p_avatar_big"
+                src=""
+                class="profile-avatar-large"
+                alt="Student"
+              />
+
+              <p id="p_detail" class="text-muted" style="margin-bottom: 15px">
+                Seat: 12 | Shift: Morning
+              </p>
+
+              <h2 id="p_balance" class="balance-display">Due ₹0</h2>
+
+              <div
+                id="monthBreakdownBox"
+                style="
+                  display: none;
+                  background: var(--bg-body);
+                  padding: 10px;
+                  border-radius: 12px;
+                  margin-bottom: 15px;
+                  max-height: 150px;
+                  overflow-y: auto;
+                  text-align: left;
+                "
+              >
+                <div id="monthList"></div>
+              </div>
+
+              <!-- Quick Actions -->
+              <div class="action-grid">
+                <a id="p_contact" class="act-btn call"
+                  ><i class="fas fa-phone"></i
+                ></a>
+                <button onclick="shareWhatsApp()" class="act-btn whatsapp">
+                  <i class="fab fa-whatsapp"></i>
+                </button>
+
+                <!-- Admin Only Buttons -->
+                <button
+                  id="btnDeleteStudent"
+                  onclick="confirmDeleteStudent()"
+                  class="act-btn admin-only"
+                  style="background: var(--danger)"
+                >
+                  <i class="fas fa-trash-alt"></i>
+                </button>
+                <button
+                  id="btnEditStudent"
+                  onclick="toggleEditMode()"
+                  class="act-btn edit admin-only"
+                  style="background: var(--warning)"
+                >
+                  <i class="fas fa-pencil-alt"></i>
+                </button>
+              </div>
+
+              <!-- Payment Input -->
+              <div class="pay-box">
+                <input
+                  type="number"
+                  id="payInputAmount"
+                  placeholder="Enter Amount (₹)"
+                />
+                <button onclick="makePayment()">COLLECT</button>
+              </div>
+
+              <div class="mini-ledger">
+                <small>Recent Transactions</small>
+                <div id="miniStatementList"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MODE 2: EDIT PROFILE -->
+          <div id="profileEditMode" style="display: none">
+            <div class="modal-head">
+              <h3>Edit Profile</h3>
+              <button onclick="closeProfile()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div
+              class="form-container"
+              style="padding: 0; border: none; box-shadow: none"
+            >
+              <div class="input-group">
+                <label>Name</label>
+                <input type="text" id="editName" />
+              </div>
+              <div class="input-group">
+                <label>Father's Name</label>
+                <input type="text" id="editFather" />
+              </div>
+              <div class="input-row">
+                <div class="input-group">
+                  <label>Contact</label>
+                  <input type="tel" id="editContact" />
+                </div>
+                <div class="input-group">
+                  <label>Seat</label>
+                  <input type="number" id="editSeat" />
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Shift</label>
+                <select id="editShift">
+                  <option value="Morning">Morning</option>
+                  <option value="Evening">Evening</option>
+                  <option value="Night">Night</option>
+                  <option value="Full Day">Full Day</option>
+                  <option value="Morning+Evening">Morning + Evening</option>
+                  <option value="Evening+Night">Evening + Night</option>
+                </select>
+              </div>
+              <div class="input-row">
+                <div class="input-group">
+                  <label>Fee</label>
+                  <input type="number" id="editFee" />
+                </div>
+                <div class="input-group">
+                  <label>Gender</label>
+                  <select id="editGender">
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                  </select>
+                </div>
+              </div>
+              <div class="input-group">
+                <label>Join Date</label>
+                <input type="date" id="editJoinDate" />
+              </div>
+
+              <div
+                class="action-grid"
+                style="grid-template-columns: 1fr 1fr; margin-top: 15px"
+              >
+                <button
+                  class="btn-submit"
+                  onclick="saveStudentEdit()"
+                  style="margin-top: 0"
+                >
+                  Save
+                </button>
+                <button
+                  class="btn-submit danger"
+                  onclick="openProfile(currentStudentId)"
+                  style="margin-top: 0"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 5. SEAT DETAIL MODAL -->
+      <div id="seatModal" class="modal-backdrop">
+        <div class="modal-card">
+          <div class="modal-head">
+            <h3 id="seatModalTitle">Seat Details</h3>
+            <button onclick="closeSeatModal()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="modal-body">
+            <small
+              style="
+                display: block;
+                margin-bottom: 10px;
+                color: var(--text-muted);
+              "
+              >Occupants:</small
+            >
+            <div id="seatOccupantList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+          navigator.serviceWorker
+            .register("./sw.js")
+            .then((reg) => console.log("Service Worker Registered"))
+            .catch((err) => console.log("Service Worker Error:", err));
+        });
+      }
+    </script>
+    <script src="app.js"></script>
+  </body>
+</html>
