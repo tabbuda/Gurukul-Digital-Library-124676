@@ -48,6 +48,7 @@ function initApp() {
 
     setupEventListeners();
     updateWelcomeMessage();
+    setupHistoryHandling();
 
     // Initial Render
     navTo('dashboard');
@@ -941,4 +942,93 @@ function refreshCurrentView() {
         if (activeSection.id === 'dashboard') renderStudentList();
         if (activeSection.id === 'dailyRegisterSection') renderDailyRegister();
     }
+
 }
+
+// ================= 14. MOBILE BACK BUTTON HANDLING =================
+
+function setupHistoryHandling() {
+    // Jab user Back button dabaye
+    window.addEventListener('popstate', function (event) {
+        
+        // 1. Agar koi Modal khula hai to use band karein
+        const profileModal = document.getElementById('profileModal');
+        const seatModal = document.getElementById('seatModal');
+
+        if (profileModal && profileModal.classList.contains('open')) {
+            // Close Profile Modal (UI Only)
+            profileModal.classList.remove('open');
+            document.getElementById('monthBreakdownBox').style.display = 'none';
+            return;
+        }
+
+        if (seatModal && seatModal.classList.contains('open')) {
+            // Close Seat Modal (UI Only)
+            seatModal.classList.remove('open');
+            return;
+        }
+
+        // 2. Agar user Dashboard par nahi hai, to Dashboard par wapas layein
+        const activeSection = document.querySelector('.view-section.active');
+        if (activeSection && activeSection.id !== 'dashboard') {
+            navTo('dashboard'); // Dashboard par wapas jao
+            return;
+        }
+
+        // 3. Agar Dashboard par hi hai, to App band hone dein (Default behavior)
+    });
+}
+
+// Function to add history state when opening items
+function pushHistoryState(hash) {
+    history.pushState({ page: hash }, null, "#" + hash);
+}
+
+// --- EXISTING FUNCTIONS KO UPDATE KAREIN (Override) ---
+
+// 1. Purane navTo ko overwrite karein taaki wo History me save kare
+const originalNavTo = navTo;
+navTo = function(sectionId) {
+    originalNavTo(sectionId);
+    // Sirf tab history add karein jab hum dashboard par NA ho
+    if (sectionId !== 'dashboard') {
+        pushHistoryState(sectionId);
+    }
+};
+
+// 2. Purane openProfile ko overwrite karein
+const originalOpenProfile = openProfile;
+openProfile = function(id) {
+    originalOpenProfile(id);
+    pushHistoryState("profile");
+};
+
+// 3. Purane openSeatModal ko overwrite karein
+const originalOpenSeatModal = openSeatModal;
+openSeatModal = function(seatNo, info) {
+    originalOpenSeatModal(seatNo, info);
+    pushHistoryState("seatMap");
+};
+
+// 4. Modal Close buttons ko update karein
+// Jab user "X" button dabaye, to humein history bhi back karni hogi
+// taaki agli baar back button sahi kaam kare.
+
+const originalCloseProfile = closeProfile;
+closeProfile = function() {
+    // Agar history me hash hai (#profile), to back karo
+    if (location.hash === "#profile") {
+        history.back(); // Ye automatic popstate trigger karega jo modal band karega
+    } else {
+        originalCloseProfile(); // Fallback
+    }
+};
+
+const originalCloseSeatModal = closeSeatModal;
+closeSeatModal = function() {
+    if (location.hash === "#seatMap") {
+        history.back();
+    } else {
+        originalCloseSeatModal();
+    }
+};
