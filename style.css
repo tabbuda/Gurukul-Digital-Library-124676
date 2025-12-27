@@ -246,10 +246,10 @@ body {
 
 /* Main Content */
 .main-content {
-    height: 100vh;
+    margin-top: var(--header-height);
+    height: calc(100vh - var(--header-height));
+    padding: 0 20px 80px 20px;
     overflow-y: auto;
-    padding: 20px;
-    padding-top: calc(var(--header-height) + 20px);
     transition: margin-left 0.3s;
     scroll-behavior: smooth;
 }
@@ -267,7 +267,7 @@ body {
 
     .main-content {
         margin-left: var(--sidebar-width);
-        padding: 30px;
+        padding: 0 30px 30px 30px;
     }
 
     .top-bar {
@@ -384,7 +384,7 @@ body {
     display: none;
     animation: fadeUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
     max-width: 1100px;
-    margin: 0 auto;
+    margin: 0;
 }
 
 .view-section.active {
@@ -459,6 +459,26 @@ select {
     font-size: 0.95rem;
     cursor: pointer;
     box-shadow: var(--shadow-sm);
+}
+
+/* =========================================
+   DASHBOARD STICKY HEADER (FIX)
+   ========================================= */
+.dashboard-sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    padding-top: 5px;
+    padding-bottom: 1px;
+    margin-bottom: 10px;
+    border-radius: 16px;
+    /* Optional: Thoda Blur Effect Premium look ke liye */
+    backdrop-filter: blur(11px);
+}
+
+/* Thoda Smoothness ke liye */
+.student-list {
+    scroll-margin-top: 160px;
 }
 
 /* Student Cards (With Images) */
@@ -1083,5 +1103,55 @@ body.role-staff .admin-only {
 
 #toastBox.error i {
     color: var(--danger);
+}
 
+/* =========================================
+   10. DETAIL MODAL STYLES
+   ========================================= */
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* 2 Columns */
+    gap: 16px;
+    margin-top: 10px;
+    background: var(--bg-body);
+    padding: 15px;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+}
+
+.detail-item label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.detail-item p {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--text-main);
+    word-break: break-word;
+}
+
+.detail-item.full-width {
+    grid-column: span 2;
+    /* Address poori line lega */
+    border-top: 1px dashed var(--border);
+    padding-top: 10px;
+}
+
+/* Clickable Avatar Hint */
+#p_avatar_big {
+    cursor: pointer;
+    transition: transform 0.2s;
+    border: 4px solid white;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+#p_avatar_big:hover {
+    transform: scale(1.05);
+    border-color: var(--primary);
 }
