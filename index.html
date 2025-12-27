@@ -138,29 +138,31 @@
 
         <!-- VIEW: DASHBOARD -->
         <section id="dashboard" class="view-section active">
-          <!-- Welcome Header -->
-          <div class="welcome-header">
-            <h3 id="welcomeMsg">Good Morning, Admin</h3>
-            <p class="text-muted">Here is today's overview</p>
-          </div>
-
-          <!-- Search & Filter -->
-          <div class="search-container">
-            <div class="search-box">
-              <i class="fas fa-search"></i>
-              <input
-                type="text"
-                id="searchInput"
-                placeholder="Search Student..."
-              />
+          <div class="dashboard-sticky-header">
+            <!-- Welcome Header -->
+            <div class="welcome-header">
+              <h3 id="welcomeMsg">Good Morning, Admin</h3>
+              <p class="text-muted">Here is today's overview</p>
             </div>
-            <select id="shiftFilter" onchange="renderStudentList()">
-              <option value="All">All Shifts</option>
-              <option value="Morning">Morning</option>
-              <option value="Evening">Evening</option>
-              <option value="Night">Night</option>
-              <option value="Full Day">Full Day</option>
-            </select>
+
+            <!-- Search & Filter -->
+            <div class="search-container">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input
+                  type="text"
+                  id="searchInput"
+                  placeholder="Search Student..."
+                />
+              </div>
+              <select id="shiftFilter" onchange="renderStudentList()">
+                <option value="All">All Shifts</option>
+                <option value="Morning">Morning</option>
+                <option value="Evening">Evening</option>
+                <option value="Night">Night</option>
+                <option value="Full Day">Full Day</option>
+              </select>
+            </div>
           </div>
 
           <!-- Student List Container -->
@@ -470,6 +472,68 @@
               >Occupants:</small
             >
             <div id="seatOccupantList"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 6. FULL DETAILS MODAL (Bio-Data) -->
+    <div id="detailModal" class="modal-backdrop" style="z-index: 2200">
+      <div class="modal-card">
+        <div class="modal-head">
+          <h3>Student Bio-Data</h3>
+          <button onclick="closeFullProfile()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <!-- Top Section -->
+          <div style="text-align: center; margin-bottom: 20px">
+            <img
+              id="d_avatar"
+              src=""
+              class="profile-avatar-large"
+              style="width: 80px; height: 80px"
+              alt="Profile"
+            />
+            <h2 id="d_name" style="margin-top: 10px">Name</h2>
+            <span id="d_status" class="badge success">Active</span>
+          </div>
+
+          <!-- Details Grid -->
+          <div class="detail-grid">
+            <div class="detail-item">
+              <label>Father's Name</label>
+              <p id="d_father">-</p>
+            </div>
+            <div class="detail-item">
+              <label>Contact No</label>
+              <p id="d_contact">-</p>
+            </div>
+            <div class="detail-item">
+              <label>Seat No</label>
+              <p id="d_seat">-</p>
+            </div>
+            <div class="detail-item">
+              <label>Shift</label>
+              <p id="d_shift">-</p>
+            </div>
+            <div class="detail-item">
+              <label>Gender</label>
+              <p id="d_gender">-</p>
+            </div>
+            <div class="detail-item">
+              <label>Monthly Fee</label>
+              <p id="d_fee">-</p>
+            </div>
+            <div class="detail-item full-width">
+              <label>Address</label>
+              <p id="d_address">-</p>
+            </div>
+            <div class="detail-item full-width">
+              <label>Join Date</label>
+              <p id="d_join">-</p>
+            </div>
           </div>
         </div>
       </div>
