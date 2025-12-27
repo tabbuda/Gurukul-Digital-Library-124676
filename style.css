@@ -471,7 +471,7 @@ select {
     padding-top: 5px;
     padding-bottom: 1px;
     margin-bottom: 10px;
-    border-radius: 16px;
+    border-radius: 0 0 16px 16px;
     /* Optional: Thoda Blur Effect Premium look ke liye */
     backdrop-filter: blur(11px);
 }
@@ -1155,3 +1155,4 @@ body.role-staff .admin-only {
     transform: scale(1.05);
     border-color: var(--primary);
 }
+
