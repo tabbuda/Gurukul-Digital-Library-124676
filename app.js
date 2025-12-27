@@ -1,7 +1,7 @@
 /**
  * ================================================================
- * GURUKUL ERP - CONTROLLER V2.0 (SECURE)
- * Features: Login, BG Sync, Gender Icons, Date Formatter
+ * GURUKUL ERP - CONTROLLER V2.1 (FINAL PRODUCTION)
+ * Features: Smart WhatsApp, Secure Login, Detail Modal, Fixes
  * ================================================================
  */
 
@@ -22,7 +22,7 @@ let libData = JSON.parse(localStorage.getItem('gdl_db')) || {
 };
 let lastSyncTime = parseInt(localStorage.getItem('gdl_last_sync')) || 0;
 let syncQueue = JSON.parse(localStorage.getItem('gdl_queue')) || [];
-let currentUser = JSON.parse(localStorage.getItem('gdl_user')) || null; // Stores Session
+let currentUser = JSON.parse(localStorage.getItem('gdl_user')) || null;
 let currentStudentId = null;
 
 // ================= 3. INITIALIZATION =================
@@ -48,7 +48,6 @@ function initApp() {
 
     setupEventListeners();
     updateWelcomeMessage();
-    setupHistoryHandling();
 
     // Initial Render
     navTo('dashboard');
@@ -89,7 +88,6 @@ async function handleLogin() {
 
     if (!u || !p) return showToast("Enter ID & Password", "error");
 
-    // UI Loading State
     btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying...';
     btn.disabled = true;
 
@@ -107,7 +105,7 @@ async function handleLogin() {
         const json = await res.json();
 
         if (json.status === 'success') {
-            currentUser = json.user; // { name: "Amit", role: "Admin" }
+            currentUser = json.user;
             localStorage.setItem('gdl_user', JSON.stringify(currentUser));
             showToast("Login Successful", "success");
             initApp();
@@ -127,7 +125,7 @@ function handleLogout() {
     if (!confirm("Logout from Device?")) return;
     localStorage.removeItem('gdl_user');
     currentUser = null;
-    location.reload(); // Reload to clear memory
+    location.reload();
 }
 
 function showLoginScreen() {
@@ -150,15 +148,13 @@ function updateWelcomeMessage() {
 }
 
 function applyRolePermissions() {
-    // Hide Elements based on Role
     if (currentUser.role === 'Staff') {
         document.body.classList.add('role-staff');
-        // Specific checks for elements that might exist
         document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
     } else {
         document.body.classList.remove('role-staff');
-        // FIX: Don't force 'block'. Set to empty string '' so CSS (flex/none) takes over.
-        document.querySelectorAll('.admin-only').forEach(el => el.style.display = ''); 
+        // FIX: Using empty string allows CSS to control display (fixing the gap issue)
+        document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
     }
 }
 
@@ -167,11 +163,9 @@ function applyRolePermissions() {
 async function syncData() {
     updateSyncIcon('syncing');
 
-    // 1. Process Queue
     if (syncQueue.length > 0) {
         const item = syncQueue[0];
         try {
-            // Attach 'collectedBy' for payments if missing
             if (item.action === 'add_payment' && !item.data.collectedBy) {
                 item.data.collectedBy = currentUser.name;
             }
@@ -189,7 +183,7 @@ async function syncData() {
                 }
                 syncQueue.shift();
                 localStorage.setItem('gdl_queue', JSON.stringify(syncQueue));
-                syncData(); // Recursive call
+                syncData();
                 return;
             }
         } catch (e) {
@@ -198,7 +192,6 @@ async function syncData() {
         }
     }
 
-    // 2. Fetch Updates
     try {
         const res = await fetch(SCRIPT_URL, {
             method: 'POST',
@@ -219,7 +212,7 @@ async function syncData() {
                 localStorage.setItem('gdl_db', JSON.stringify(libData));
                 refreshCurrentView();
             }
-            updateSyncIcon('idle'); // Green Tick or Cloud
+            updateSyncIcon('idle');
         }
     } catch (e) {
         updateSyncIcon('offline');
@@ -236,7 +229,6 @@ function updateSyncIcon(status) {
         icon.className = 'fas fa-wifi-slash text-danger';
     } else {
         icon.className = 'fas fa-check-circle text-success';
-        // Revert to cloud after 2 seconds
         setTimeout(() => {
             if (icon.className.includes('check')) icon.className = 'fas fa-cloud text-muted';
         }, 2000);
@@ -274,17 +266,14 @@ function navTo(sectionId) {
         setTimeout(() => target.classList.add('active'), 10);
     }
 
-    // Sidebar Active State
     document.querySelectorAll('.menu-item').forEach(btn => btn.classList.remove('active'));
     const activeBtn = document.querySelector(`button[onclick="navTo('${sectionId}')"]`);
     if (activeBtn) activeBtn.classList.add('active');
 
-    // Section Logic
     if (sectionId === 'dashboard') renderDashboard();
     if (sectionId === 'dailyRegisterSection') renderDailyRegister();
     if (sectionId === 'seatMapSection') renderSeatMap();
     if (sectionId === 'financesSection') {
-        // Staff Check
         if (currentUser.role === 'Staff') {
             showToast("Access Restricted", "error");
             navTo('dashboard');
@@ -329,14 +318,11 @@ function renderStudentList() {
         return matchesSearch && matchesShift;
     });
 
-    // Sort by Seat No
     filtered.sort((a, b) => parseInt(a.seatNo) - parseInt(b.seatNo));
 
     filtered.forEach(s => {
         const ledger = calculateLedger(s);
         const bal = ledger.balance;
-
-        // Gender Logic
         const avatarUrl = (s.gender === 'Female') ? FEMALE_ICON : MALE_ICON;
 
         let badgeClass = bal < 0 ? 'danger' : 'success';
@@ -375,14 +361,12 @@ function renderDailyRegister() {
     let todayColl = 0;
     const groups = {};
 
-    // Sort Descending
     const sortedPay = [...libData.payments].sort((a, b) => parseDate(b.date) - parseDate(a.date));
 
     sortedPay.forEach(p => {
         const pDateISO = parseDate(p.date).toISOString().split('T')[0];
         if (pDateISO === todayISO) todayColl += parseInt(p.amount);
 
-        // Group Key (DD/MM/YYYY)
         const dateKey = formatDateDisplay(p.date);
         if (!groups[dateKey]) groups[dateKey] = [];
         groups[dateKey].push(p);
@@ -406,7 +390,7 @@ function renderDailyRegister() {
     Object.keys(groups).forEach(date => {
         const dateHeader = document.createElement('div');
         dateHeader.className = 'date-header';
-        dateHeader.innerText = date; // Now DD/MM/YYYY
+        dateHeader.innerText = date;
         container.appendChild(dateHeader);
 
         groups[date].forEach(p => {
@@ -430,14 +414,13 @@ function renderDailyRegister() {
     });
 }
 
-// ================= 9. PROFILE & ACTIONS =================
+// ================= 9. PROFILE, PAYMENT & WHATSAPP =================
 
 function openProfile(id) {
     currentStudentId = String(id);
     const s = libData.students.find(x => String(x.id) === currentStudentId);
     if (!s) return;
 
-    // Toggle Modes
     document.getElementById('profileViewMode').style.display = 'block';
     document.getElementById('profileEditMode').style.display = 'none';
 
@@ -445,20 +428,20 @@ function openProfile(id) {
     document.getElementById('p_detail').innerText = `Seat: ${s.seatNo} | ${s.shift}`;
     document.getElementById('p_contact').href = `tel:${s.contact}`;
 
-    // Set Avatar in Profile
+    // Set Avatar & Click Event for Bio-Data
     const pImg = document.getElementById('p_avatar_big');
-    if (pImg) pImg.src = (s.gender === 'Female') ? FEMALE_ICON : MALE_ICON;
+    if (pImg) {
+        pImg.src = (s.gender === 'Female') ? FEMALE_ICON : MALE_ICON;
+        pImg.onclick = function() {
+            showFullProfile(s.id);
+        };
+    }
 
     const ledger = calculateLedger(s);
     renderBalanceUI(ledger.balance);
-
-    // Mini Statement
     renderMiniStatement(s.id);
-
-    // Setup Edit Form
     fillEditForm(s);
 
-    // Role Check for Buttons
     const delBtn = document.getElementById('btnDeleteStudent');
     const editBtn = document.getElementById('btnEditStudent');
 
@@ -485,7 +468,6 @@ async function makePayment() {
 
     const s = libData.students.find(x => String(x.id) === String(currentStudentId));
 
-    // Prepare Data
     const payData = {
         studentId: s.id,
         studentName: s.name,
@@ -494,10 +476,9 @@ async function makePayment() {
         date: new Date().toISOString().split('T')[0],
         timestamp: Date.now(),
         mode: 'Cash',
-        collectedBy: currentUser.name // Track who took money
+        collectedBy: currentUser.name
     };
 
-    // Optimistic UI
     libData.payments.push({ ...payData,
         txnId: 'WAITING...'
     });
@@ -507,9 +488,13 @@ async function makePayment() {
     amtInput.value = '';
     closeProfile();
     renderStudentList();
-    syncData(); // Trigger Sync
+    syncData();
 
-    // Attempt Send
+    // TRIGGER RECEIPT ON WHATSAPP
+    setTimeout(() => {
+        shareWhatsApp('receipt', amt);
+    }, 500);
+
     try {
         syncQueue.push({
             action: 'add_payment',
@@ -520,10 +505,56 @@ async function makePayment() {
     } catch (e) {}
 }
 
+/**
+ * SMART WHATSAPP FUNCTION
+ * type: 'receipt' (Payment proof) or 'report' (Reminder/Status)
+ */
+function shareWhatsApp(type = 'report', receiptAmt = 0) {
+    const s = libData.students.find(x => String(x.id) === String(currentStudentId));
+    if (!s) return;
+
+    let phone = s.contact.replace(/\D/g, '');
+    if (phone.length === 10) phone = "91" + phone;
+
+    const ledger = calculateLedger(s);
+    let msg = "";
+
+    // MODE 1: RECEIPT (Immediate after payment)
+    if (type === 'receipt') {
+        const date = new Date().toLocaleDateString('en-IN');
+        msg = `🧾 *GURUKUL RECEIPT*` +
+            `%0A%0A*Namaste ${s.name},*` +
+            `%0APayment Received: *₹${receiptAmt}*` +
+            `%0ADate: ${date}` +
+            `%0AMode: Cash` +
+            `%0A%0A✅ *Current Due:* ₹${Math.abs(ledger.balance < 0 ? ledger.balance : 0)}` +
+            `%0A_Thank you!_`;
+    }
+    // MODE 2: REPORT (Manual check from profile)
+    else {
+        if (ledger.balance < 0) {
+            // REMINDER
+            msg = `⚠️ *FEE REMINDER*` +
+                `%0A%0A*Hi ${s.name},*` +
+                `%0AYour fee is pending.` +
+                `%0A%0A📉 *Total Due: ₹${Math.abs(ledger.balance)}*` +
+                `%0A_Please clear dues to avoid late fees._`;
+        } else {
+            // STATUS OK
+            msg = `🏛️ *GURUKUL STATUS*` +
+                `%0A%0A👤 *${s.name}*` +
+                `%0A✅ *Status:* Fully Paid` +
+                `%0A💰 *Advance:* ₹${ledger.balance}` +
+                `%0A%0A_Keep studying hard!_ 👍`;
+        }
+    }
+
+    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
+}
+
 function renderBalanceUI(balance) {
     const balEl = document.getElementById('p_balance');
     balEl.dataset.original = balance;
-
     const eyeIcon = `<i id="btnViewMonths" class="fas fa-eye" onclick="toggleMonthView()" style="font-size:0.5em; cursor:pointer; margin-left:10px; opacity:0.6"></i>`;
 
     if (balance < 0) balEl.innerHTML = `Due ₹${Math.abs(balance)} ${eyeIcon}`;
@@ -560,7 +591,6 @@ function renderMiniStatement(sid) {
         list.innerHTML = '<small>No transactions yet.</small>';
         return;
     }
-
     txns.forEach(t => {
         list.innerHTML += `<div class="mini-txn"><span>${formatDateDisplay(t.date)}</span><b>₹${t.amount}</b></div>`;
     });
@@ -576,7 +606,33 @@ function updateLiveBalanceUI() {
     else balEl.innerHTML = `<span style="color:var(--success)">New Adv: ₹${newBal}</span>`;
 }
 
-// ================= 10. SEAT MAP LOGIC =================
+// ================= 10. BIO-DATA MODAL LOGIC =================
+
+function showFullProfile(id) {
+    const s = libData.students.find(x => String(x.id) === String(id));
+    if (!s) return;
+
+    document.getElementById('d_avatar').src = (s.gender === 'Female') ? FEMALE_ICON : MALE_ICON;
+    document.getElementById('d_name').innerText = s.name;
+    document.getElementById('d_status').innerText = s.status || 'Active';
+
+    document.getElementById('d_father').innerText = s.fatherName || '-';
+    document.getElementById('d_contact').innerText = s.contact || '-';
+    document.getElementById('d_seat').innerText = s.seatNo || '-';
+    document.getElementById('d_shift').innerText = s.shift || '-';
+    document.getElementById('d_gender').innerText = s.gender || '-';
+    document.getElementById('d_fee').innerText = '₹' + s.monthlyFee;
+    document.getElementById('d_address').innerText = s.address || 'Not Provided';
+    document.getElementById('d_join').innerText = formatDateDisplay(s.joinDate);
+
+    document.getElementById('detailModal').classList.add('open');
+}
+
+function closeFullProfile() {
+    document.getElementById('detailModal').classList.remove('open');
+}
+
+// ================= 11. SEAT MAP LOGIC =================
 
 function renderSeatMap() {
     const container = document.getElementById('seatGridContainer');
@@ -642,7 +698,7 @@ function closeSeatModal() {
     document.getElementById('seatModal').classList.remove('open');
 }
 
-// ================= 11. ADMISSIONS & STUDENT EDIT =================
+// ================= 12. ADMISSIONS & STUDENT EDIT =================
 
 function submitAdmission() {
     const name = document.getElementById('admName').value;
@@ -710,7 +766,7 @@ async function saveStudentEdit() {
         monthlyFee: document.getElementById('editFee').value,
         joinDate: document.getElementById('editJoinDate').value,
         gender: document.getElementById('editGender').value,
-        address: libData.students.find(x => x.id == id).address // Keep old address
+        address: libData.students.find(x => x.id == id).address
     };
 
     const idx = libData.students.findIndex(s => String(s.id) === String(id));
@@ -759,7 +815,7 @@ function toggleEditMode() {
     document.getElementById('profileEditMode').style.display = 'block';
 }
 
-// ================= 12. FINANCES & UTILS =================
+// ================= 13. FINANCES & UTILS =================
 
 async function submitExpense() {
     const item = document.getElementById('expItem').value;
@@ -821,12 +877,9 @@ function renderFinances() {
     });
 }
 
-// ================= 13. HELPER FUNCTIONS =================
-
 function parseDate(dateStr) {
     if (!dateStr) return new Date();
     if (dateStr instanceof Date) return dateStr;
-    // Handle DD-MM-YYYY
     if (dateStr.includes('-') && dateStr.split('-')[0].length === 2) {
         const [d, m, y] = dateStr.split('-');
         return new Date(`${y}-${m}-${d}`);
@@ -835,7 +888,6 @@ function parseDate(dateStr) {
 }
 
 function formatDateDisplay(dateStr) {
-    // Input: YYYY-MM-DD or DD-MM-YYYY -> Output: DD/MM/YYYY
     if (!dateStr) return "";
     let dObj = parseDate(dateStr);
     const d = String(dObj.getDate()).padStart(2, '0');
@@ -895,16 +947,6 @@ function calculateLedger(student) {
     };
 }
 
-function shareWhatsApp() {
-    const s = libData.students.find(x => String(x.id) === String(currentStudentId));
-    if (!s) return;
-    const ledger = calculateLedger(s);
-    let phone = s.contact.replace(/\D/g, '');
-    if (phone.length === 10) phone = "91" + phone;
-    const msg = encodeURIComponent(`*GURUKUL LIBRARY*\nHi ${s.name},\nFee Status:\nPaid: ₹${ledger.totalPaid}\nBalance: ₹${ledger.balance}\nPlease clear dues.`);
-    window.open(`https://wa.me/${phone}?text=${msg}`, '_blank');
-}
-
 function setTodayDateInput(id) {
     const el = document.getElementById(id);
     if (el) el.value = new Date().toISOString().split('T')[0];
@@ -933,7 +975,7 @@ function toggleTheme() {
     const newTheme = current === 'light' ? 'dark' : 'light';
     document.body.setAttribute('data-theme', newTheme);
     localStorage.setItem('gdl_theme', newTheme);
-    toggleProfileMenu(); // Close menu
+    toggleProfileMenu();
 }
 
 function refreshCurrentView() {
@@ -942,93 +984,4 @@ function refreshCurrentView() {
         if (activeSection.id === 'dashboard') renderStudentList();
         if (activeSection.id === 'dailyRegisterSection') renderDailyRegister();
     }
-
 }
-
-// ================= 14. MOBILE BACK BUTTON HANDLING =================
-
-function setupHistoryHandling() {
-    // Jab user Back button dabaye
-    window.addEventListener('popstate', function (event) {
-        
-        // 1. Agar koi Modal khula hai to use band karein
-        const profileModal = document.getElementById('profileModal');
-        const seatModal = document.getElementById('seatModal');
-
-        if (profileModal && profileModal.classList.contains('open')) {
-            // Close Profile Modal (UI Only)
-            profileModal.classList.remove('open');
-            document.getElementById('monthBreakdownBox').style.display = 'none';
-            return;
-        }
-
-        if (seatModal && seatModal.classList.contains('open')) {
-            // Close Seat Modal (UI Only)
-            seatModal.classList.remove('open');
-            return;
-        }
-
-        // 2. Agar user Dashboard par nahi hai, to Dashboard par wapas layein
-        const activeSection = document.querySelector('.view-section.active');
-        if (activeSection && activeSection.id !== 'dashboard') {
-            navTo('dashboard'); // Dashboard par wapas jao
-            return;
-        }
-
-        // 3. Agar Dashboard par hi hai, to App band hone dein (Default behavior)
-    });
-}
-
-// Function to add history state when opening items
-function pushHistoryState(hash) {
-    history.pushState({ page: hash }, null, "#" + hash);
-}
-
-// --- EXISTING FUNCTIONS KO UPDATE KAREIN (Override) ---
-
-// 1. Purane navTo ko overwrite karein taaki wo History me save kare
-const originalNavTo = navTo;
-navTo = function(sectionId) {
-    originalNavTo(sectionId);
-    // Sirf tab history add karein jab hum dashboard par NA ho
-    if (sectionId !== 'dashboard') {
-        pushHistoryState(sectionId);
-    }
-};
-
-// 2. Purane openProfile ko overwrite karein
-const originalOpenProfile = openProfile;
-openProfile = function(id) {
-    originalOpenProfile(id);
-    pushHistoryState("profile");
-};
-
-// 3. Purane openSeatModal ko overwrite karein
-const originalOpenSeatModal = openSeatModal;
-openSeatModal = function(seatNo, info) {
-    originalOpenSeatModal(seatNo, info);
-    pushHistoryState("seatMap");
-};
-
-// 4. Modal Close buttons ko update karein
-// Jab user "X" button dabaye, to humein history bhi back karni hogi
-// taaki agli baar back button sahi kaam kare.
-
-const originalCloseProfile = closeProfile;
-closeProfile = function() {
-    // Agar history me hash hai (#profile), to back karo
-    if (location.hash === "#profile") {
-        history.back(); // Ye automatic popstate trigger karega jo modal band karega
-    } else {
-        originalCloseProfile(); // Fallback
-    }
-};
-
-const originalCloseSeatModal = closeSeatModal;
-closeSeatModal = function() {
-    if (location.hash === "#seatMap") {
-        history.back();
-    } else {
-        originalCloseSeatModal();
-    }
-};
