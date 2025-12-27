@@ -377,12 +377,12 @@ function renderDailyRegister() {
             <div class="stat-box success">
                 <small>Today's Collection</small>
                 <h3>₹${todayColl}</h3>
-                <i class="fas fa-calendar-day bg-icon"></i>
+                <i class="fa-solid fa-indian-rupee-sign bg-icon"></i>
             </div>
              <div class="stat-box primary">
                 <small>Total Transactions</small>
                 <h3>${libData.payments.length}</h3>
-                <i class="fas fa-list bg-icon"></i>
+                <i class="fa-regular fa-user bg-icon"></i>
             </div>
         </div>
     `;
@@ -985,6 +985,7 @@ function refreshCurrentView() {
         if (activeSection.id === 'dailyRegisterSection') renderDailyRegister();
     }
 }
+
 
 
 
