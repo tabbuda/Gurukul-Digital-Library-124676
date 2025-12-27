@@ -398,7 +398,7 @@ function renderDailyRegister() {
             row.className = 'txn-row';
             row.innerHTML = `
                 <div class="txn-left">
-                    <div class="txn-icon"><i class="fas fa-user"></i></div>
+                    <div class="txn-icon"><i class="fa-solid fa-receipt"></i></div>
                     <div>
                         <h5>${p.studentName}</h5>
                         <small>By: ${p.collectedBy || 'Admin'}</small>
@@ -985,4 +985,5 @@ function refreshCurrentView() {
         if (activeSection.id === 'dailyRegisterSection') renderDailyRegister();
     }
 }
+
 
