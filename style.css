@@ -631,8 +631,8 @@ select {
 
 .bg-icon {
     position: absolute;
-    bottom: -15px;
-    right: -15px;
+    bottom: -13px;
+    right: 17px;
     font-size: 5rem;
     opacity: 0.05;
     color: var(--text-main);
@@ -1155,4 +1155,5 @@ body.role-staff .admin-only {
     transform: scale(1.05);
     border-color: var(--primary);
 }
+
 
